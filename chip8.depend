@@ -1,0 +1,14 @@
+# depslib dependency file v1.0
+1509961315 source:c:\users\caio\desktop\chip8_thefinal\chip8\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+	<stdbool.h>
+	<inttypes.h>
+	"variaveis.h"
+	<allegro5/allegro.h>
+	<allegro5/allegro_primitives.h>
+	<allegro5/allegro_native_dialog.h>
+
+1509850474 c:\users\caio\desktop\chip8_thefinal\chip8\variaveis.h
+
