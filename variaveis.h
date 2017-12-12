@@ -35,12 +35,10 @@ int desenha=0,sair=0; // Desenha ou não
 
 unsigned short stack[16]; //Toda vez que é realizado um jump ou chamada de subrotina, deve-se armazenar o pc no stack
 unsigned short sp; // Stack pointer - em q nivel do stack o pc está armazenado
+unsigned short tecla;
 
 unsigned char gfx[64 * 32];//será util no futuro
 //int gfx[64 * 32];
-
-unsigned char  delay_timer;		// Delay timer
-unsigned char  sound_timer;		// Sound timer
 
 unsigned char delay_timer; //delay do timer
 unsigned char sound_timer; //delay do som

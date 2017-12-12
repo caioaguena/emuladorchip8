@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1509961315 source:c:\users\caio\desktop\chip8_thefinal\chip8\main.c
+1512505400 source:c:\users\caio\desktop\chip8_thefinal\chip8\main.c
 	<stdio.h>
 	<stdlib.h>
 	<stdint.h>
@@ -9,6 +9,9 @@
 	<allegro5/allegro.h>
 	<allegro5/allegro_primitives.h>
 	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
 
-1509850474 c:\users\caio\desktop\chip8_thefinal\chip8\variaveis.h
+1510701425 c:\users\caio\desktop\chip8_thefinal\chip8\variaveis.h
 

@@ -20,12 +20,16 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_native_dialog.h>
-#define FPS 60.0
-#define LARGURA_TELA 64
-#define ALTURA_TELA 32
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#define FPS 360
+#define LARGURA_TELA 640
+#define ALTURA_TELA 320
 ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 ALLEGRO_TIMER *timer = NULL;
+ALLEGRO_FONT *fonte = NULL;
 /*
  *
  */
@@ -64,6 +68,7 @@ void display(){
         if(evento.type == ALLEGRO_EVENT_TIMER){
             desenha=1;
         }
+
         else if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             sair = 1;
         }
@@ -73,19 +78,21 @@ void display(){
         al_clear_to_color(al_map_rgb(0,0,0));
 
         //al_draw_pixel(5, 10, al_map_rgb(255,0,0));
-                printf("\n");
+               // printf("\n");
             int eixox=0,eixoy=0;
-            for(int l=0; l <= 2048;l++){
+            for(int l=0; l <= 2047;l++){
                 unsigned char test = gfx[l];
                 if(eixox==64){
                     eixox=0;
                     eixoy+=1;
                 }
                 if(test == 1){
-                    al_draw_pixel(eixox, eixoy, al_map_rgb(255,255,255));
+                    //al_draw_pixel(eixox, eixoy, al_map_rgb(255,255,255));
+                    al_draw_filled_rectangle((eixox*10)+5, (eixoy*10)+5, (eixox*10)-5, (eixoy*10)-5, al_map_rgb(255,255,255));
                 }
                 else{
-                    al_draw_pixel(eixox, eixoy, al_map_rgb(0,0,0));
+                    //al_draw_pixel(eixox, eixoy, al_map_rgb(0,0,0));
+                    al_draw_filled_rectangle((eixox*10)+5, (eixoy*10)+5, (eixox*10)-5, (eixoy*10)-5, al_map_rgb(0,0,0));
                 }
                 eixox+=1;
             }
@@ -105,7 +112,7 @@ void ciclo(){
     */
     opcode = memory[pc] << 8 | memory[pc + 1];
     int altura;
-    printf("\n op: %x ", opcode);
+    //printf("\n op: %x ", opcode);
 
      switch(opcode & 0xF000)
      {
@@ -122,7 +129,7 @@ void ciclo(){
 
                  case(0x00EE): //retorna de uma subrotina
                      --sp; //decresce 1 para pegar o endereço certo
-		     pc = stack[sp];	//o pc recebe o endereço que foi armazenado.
+                    pc = stack[sp];	//o pc recebe o endereço que foi armazenado.
                      pc += 2;
                  break;
              }break;
@@ -171,22 +178,22 @@ void ciclo(){
          case(0x8000):
              switch(opcode & 0x000F){
                  case (0x0000): // 0x8XY0: VX = VY
-                     V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
                  case (0x0001): // 0x8XY1: VX = VX|VY
-                     V[(opcode & 0x0F00) >> 8] ==  V[(opcode & 0x0F00) >> 8] | V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] =  V[(opcode & 0x0F00) >> 8] | V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
                  case (0x0002): // 0x8XY2: Vx=Vx&Vy
-                     V[(opcode & 0x0F00) >> 8] ==  V[(opcode & 0x0F00) >> 8] & V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] =  V[(opcode & 0x0F00) >> 8] & V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
                  case (0x0003):  // 0x8XY3: Vx=Vx^Vy   ^ = XOR
-                     V[(opcode & 0x0F00) >> 8] ==  V[(opcode & 0x0F00) >> 8] ^ V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] =  V[(opcode & 0x0F00) >> 8] ^ V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
@@ -197,7 +204,7 @@ void ciclo(){
                      else{
                          V[15]=0;
                      }
-                     V[(opcode & 0x0F00) >> 8] ==  V[(opcode & 0x0F00) >> 8] + V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] =  V[(opcode & 0x0F00) >> 8] + V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
@@ -208,7 +215,7 @@ void ciclo(){
                      else{
                          V[15]=1;
                      }
-                     V[(opcode & 0x0F00) >> 8] ==  V[(opcode & 0x0F00) >> 8] - V[(opcode & 0x00F0) >> 4];
+                     V[(opcode & 0x0F00) >> 8] =  V[(opcode & 0x0F00) >> 8] - V[(opcode & 0x00F0) >> 4];
                      pc +=2;
                  break;
 
@@ -219,8 +226,13 @@ void ciclo(){
                  break;
 
                  case (0x0007):  // 0x8XY7: Vx=Vy-Vx
-                     V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
-		     pc += 2;
+                    // V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
+                    if(V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])	// VY-VX
+						V[0xF] = 0;
+					else
+						V[0xF] = 1;
+					V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8];
+					pc += 2;
                  break;
 
                  case (0x000E):  // 0x8XYE: Vx=Vy<<1 e V[0xF] recebe o bit mais significativo de Vx
@@ -252,16 +264,17 @@ void ciclo(){
 	 break;
 
          case 0xC000: // CXNN: Vx=rand()&NN / VX = numero aleatorio & NN
-             V[(opcode & 0x0F00) >> 8] = (rand()& 0xFF) & (opcode & 0x00FF); //rand() % (max_number + 1 - minimum_number) + minimum_number - va vdd não importa pois o resultado sempre será 1 byte
+             V[(opcode & 0x0F00) >> 8] = (rand()% 0xFF) & (opcode & 0x00FF); //rand() % (max_number + 1 - minimum_number) + minimum_number - va vdd não importa pois o resultado sempre será 1 byte
+             pc +=2;
 	 break;
 
          case 0xD000: // DXYN: Desenha um sprite na coordenada (VX, VY)
-        // al_draw_pixel(5, 50, al_map_rgb(255,0,0));
-            altura = opcode & 0x000F;
+            altura = (opcode & 0x000F);
             unsigned short pixel;
             unsigned short x = V[(opcode & 0x0F00) >> 8];
 			unsigned short y = V[(opcode & 0x00F0) >> 4];
 
+			V[0xF] = 0;
             for (int yline = 0; yline < altura; yline++) // N será a altura do sprite
 			{
                 pixel = memory[I + yline];
@@ -286,11 +299,25 @@ void ciclo(){
             switch(opcode & 0x00FF)
             {
                 case 0x009E: // EX9E: pula a proxima instrução se a key armazenada em Vx for pressionada
-
+                    if(V[(opcode & 0x0F00) >> 8] == tecla )
+                        {
+						pc += 4;
+                    }
+					else{
+						pc += 2;
+					}
+					//tecla=NULL;
 		break;
 
 		case 0x00A1: // EXA1: pula a proxima instrução se a key armazenada em Vx não for pressionada
-
+                    if(V[(opcode & 0x0F00) >> 8] != tecla )
+                        {
+						pc += 4;
+                    }
+					else{
+						pc += 2;
+					}
+					//tecla=NULL;
 		break;
 
 		default:
@@ -307,15 +334,21 @@ void ciclo(){
                 break;
 
                 case(0x000A): // FX0A:	Vx = get_key()
-
+                    if(tecla!=0){
+                        V[(opcode & 0x0F00) >> 8] = tecla;
+                        pc += 2;
+                    }
+                    tecla=NULL;
                 break;
 
                 case(0x0015): // FX15:	delay_timer(Vx)
-
+                    delay_timer = V[(opcode & 0x0F00) >> 8];
+					pc += 2;
                 break;
 
                 case(0x0018): // FX18: sound_timer(Vx)
-
+                    sound_timer = V[(opcode & 0x0F00) >> 8];
+					pc += 2;
                 break;
 
                 case(0x001E):  // FX1E: I +=Vx
@@ -332,7 +365,8 @@ void ciclo(){
                 break;
 
                 case(0x0029): // FX29:	I=sprite_addr[Vx]
-
+                    I = V[(opcode & 0x0F00) >> 8] * 0x5;
+					pc += 2;
                 break;
 
                 case(0x0033): // FX33: Stores the Binary-coded decimal representation of VX at the addresses I, I plus 1, and I plus 2
@@ -346,6 +380,7 @@ void ciclo(){
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i){
 			memory[I + i] = V[i];
                     }
+                    I += ((opcode & 0x0F00) >> 8) + 1;
                     pc += 2;
                 break;
 
@@ -353,15 +388,19 @@ void ciclo(){
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i){
 			V[i] = memory[I + i];
                     }
+                    I += ((opcode & 0x0F00) >> 8) + 1;
                     pc += 2;
                 break;
+                default: printf("LUL");
             }
          break;
+         default: printf("LUL");
      }
 
 	// Update timers
-	if(delay_timer > 0)
+	if(delay_timer > 0){
 		--delay_timer;
+	}
 
 	if(sound_timer > 0)
 	{
@@ -376,11 +415,25 @@ void init(){
   opcode = 0;
   I      = 0;
   sp     = 0;
-
     desenha = 1;
     //quando o loop principal deve encerrar
     sair = 0;
     //posicao do quadrado e quanto ele andara a cada disparo do timer, para coordenada X e Y
+    for(int i = 0; i < 2048; ++i){
+		gfx[i] = 0;
+    }
+
+    for(int i = 0; i < 16; ++i){
+		stack[i] = 0;
+    }
+
+    for(int i = 0; i < 4096; ++i){
+		memory[i] = 0;
+    }
+
+    for(int j=0;j < 80;j++){
+        memory[j]=chip8_fontset[j];
+    }
 
     if (!inicializar()){
         return -1;
@@ -392,7 +445,7 @@ void load(){
     int result,i;
     uint8_t ac;
    // Abre um jogo para leitura, verifique s o caminho está correto
-  arq = fopen("C:\\Users\\Caio\\Desktop\\CHIP8_TheFinal\\chip8\\Games\\BLITZ", "rb");
+  arq = fopen("C:\\Users\\Caio\\Desktop\\CHIP8_TheFinal\\chip8\\Games\\TETRIS", "rb");
   if (arq == NULL)  // Se houve erro na abertura
   {
      printf("Problemas na abertura do arquivo\n");
@@ -422,6 +475,18 @@ int inicializar()
         return 0;
     }
 
+     if (!al_init_primitives_addon())
+    {
+        fprintf(stderr, "Falha ao inicializar add-on de primitivas.\n");
+        return false;
+    }
+
+
+    if (!al_install_keyboard()){
+        error_msg("Falha ao inicializar o teclado");
+        return 0;
+    }
+
     janela = al_create_display(LARGURA_TELA, ALTURA_TELA);
     if(!janela) {
         error_msg("Falha ao criar janela");
@@ -429,7 +494,7 @@ int inicializar()
         return 0;
     }
 
-    al_set_window_title(janela, "Testando FPS");
+    al_set_window_title(janela, "CHIP-8 Emulador by Caio");
 
     al_clear_to_color(al_map_rgb(255, 0, 0));
     al_set_target_bitmap(al_get_backbuffer(janela));
@@ -444,6 +509,7 @@ int inicializar()
 
     al_register_event_source(fila_eventos, al_get_display_event_source(janela));
     al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
+    al_register_event_source(fila_eventos, al_get_keyboard_event_source());
     al_clear_to_color(al_map_rgb(0,0,0));
     al_flip_display();
     al_start_timer(timer);
@@ -451,11 +517,80 @@ int inicializar()
     return 1;
 }
 
+void teclado(){
+ALLEGRO_EVENT evento;
+
+al_wait_for_event(fila_eventos, &evento);
+if (evento.type == ALLEGRO_EVENT_KEY_DOWN)
+            {
+                switch(evento.keyboard.keycode)
+                {
+                case ALLEGRO_KEY_1:
+                    tecla = 0x1;
+                    break;
+                case ALLEGRO_KEY_2:
+                    tecla = 0x2;
+                    break;
+                case ALLEGRO_KEY_3:
+                    tecla = 0x3;
+                    break;
+                case ALLEGRO_KEY_Q:
+                    tecla = 0x4;
+                    break;
+                case ALLEGRO_KEY_W:
+                    tecla = 0x5;
+                    break;
+                case ALLEGRO_KEY_E:
+                    tecla = 0x6;
+                    break;
+                case ALLEGRO_KEY_A:
+                    tecla = 0x7;
+                    break;
+                case ALLEGRO_KEY_S:
+                    tecla = 0x8;
+                    break;
+                case ALLEGRO_KEY_D:
+                    tecla = 0x9;
+                    break;
+                case ALLEGRO_KEY_Z:
+                    tecla = 0xA;
+                    break;
+                case ALLEGRO_KEY_C:
+                    tecla = 0xB;
+                    break;
+                case ALLEGRO_KEY_4:
+                    tecla = 0xC;
+                    break;
+                case ALLEGRO_KEY_R:
+                    tecla = 0xD;
+                    break;
+                case ALLEGRO_KEY_F:
+                    tecla = 0xE;
+                    break;
+                case ALLEGRO_KEY_V:
+                    tecla = 0xF;
+                    break;
+                 case ALLEGRO_KEY_X:
+                    tecla = 0x0;
+                    break;
+               // default: tecla = tecla;break;
+                }
+            }
+            else if (evento.type == ALLEGRO_EVENT_KEY_UP)
+            {
+                tecla = NULL;
+            }
+}
+
+
+
 int main(int argc, char** argv) {
     init();
-   load();
+    load();
 
-        for(;;){
+
+    for(;;){
+        teclado();
         ciclo();
         display();
     }
